@@ -7,4 +7,3 @@ require('dotenv').config()
 
 app.use(cors())
 app.use(express.json())
-console.log('hello world')
