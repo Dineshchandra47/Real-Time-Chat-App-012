@@ -1,79 +1,86 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import React, { useState } from "react";
 import styled from "styled-components";
-import { useNavigate, Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ReactComponent as Logo } from "../assets/icon.svg";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import { loginRoute } from  "../utils/APIRoutes";
+import { toast, Toaster } from "react-hot-toast";
+import axios from "axios";
+import { registerRoute } from "../utils/APIRoutes";
 
-export function Login() {
+export const Regist = () => {
   const navigate = useNavigate();
-  const [values, setValues] = useState({ username: "", password: "" });
-  const toastOptions = {
-    position: "top-center",
-    autoClose: 4000,
-    hideProgressBar: true,
-    pauseOnHover: false,
-    draggable: true,
-    theme: "dark",
-  };
-
-  useEffect(() => {
-    if (localStorage.getItem(
-      // process.env.REACT_APP_LOCALHOST_KEY
-      'errr'
-      )) {
-      navigate("/");
-    }
-  }, []);
-
-  const handleChange = (event) => {
-    setValues({ ...values, [event.target.name]: event.target.value });
-  };
-
-  const validateForm = () => {
-    const { username, password } = values;
-    if (username === "") {
-      toast.error("Email and Password is required.", toastOptions);
-      return false;
-    } else if (password === "") {
-      toast.error("Email and Password is required.", toastOptions);
-      return false;
-    }
-    return true;
-  };
+  const [values, setValues] = useState({
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (validateForm()) {
-      // console.log(validateForm)
-      const { username, password } = values;
-      const { data } = await axios.post(loginRoute, {
+    if (handleValidation()) {
+      const { email, username, password } = values;
+      const { data } = await axios.post(registerRoute, {
         username,
+        email,
         password,
       });
+
       if (data.status === false) {
-        toast.error(data.msg, toastOptions);
+        toast.error(data.message, toastOptions);
       }
       if (data.status === true) {
         localStorage.setItem(
+          "chat-user",
           // process.env.REACT_APP_LOCALHOST_KEY,
-          'err',
           JSON.stringify(data.user)
         );
-
         navigate("/");
       }
     }
   };
 
+  const toastOptions = {
+    icon: "❌",
+    // style: {
+    //   borderRadius: "4px",
+    //   background: "#333",
+    //   color: "#fff",
+    // },
+  };
+
+  const handleValidation = () => {
+    const { password, confirmPassword, username, email } = values;
+    if (password !== confirmPassword) {
+      toast.error("Password and Confirm Password should be same", toastOptions);
+      return false;
+    } else if (username.length < 3) {
+      toast.error(
+        "Username should be greather than 3 characters",
+        toastOptions
+      );
+      return false;
+    } else if (password.length < 8) {
+      toast.error(
+        "Password should be greather than or equal to 8 characters",
+        toastOptions
+      );
+      return false;
+    } else if (email === "") {
+      toast.error("Email is required", toastOptions);
+      return false;
+    }
+  };
+
+  const handleChange = (event) => {
+    setValues({ ...values, [event.target.name]: event.target.value });
+  };
+
   return (
     <>
       <FormContainer>
-        <form autoComplete="off" action="" onSubmit={(event) => handleSubmit(event)}>
+        <form autoComplete="off" onSubmit={(event) => handleSubmit(event)}>
           <div className="brand">
-            {/* <img src={Logo} alt="logo" /> */}
+            {/* <img src={<Logo/>} alt="logo" /> */}
             <div className="img">
               <Logo />
             </div>
@@ -84,7 +91,12 @@ export function Login() {
             placeholder="Username"
             name="username"
             onChange={(e) => handleChange(e)}
-            min="3"
+          />
+          <input
+            type="email"
+            placeholder="Email"
+            name="email"
+            onChange={(e) => handleChange(e)}
           />
           <input
             type="password"
@@ -92,16 +104,23 @@ export function Login() {
             name="password"
             onChange={(e) => handleChange(e)}
           />
-          <button type="submit">Log In</button>
+          <input
+            type="password"
+            placeholder="Confirm Password"
+            name="confirmPassword"
+            onChange={(e) => handleChange(e)}
+          />
+          <button type="submit">Create User</button>
+
           <span>
-            Don't have an account ? <Link to="/register">Create One.</Link>
+            Already have an account ? <Link to="/login">Login</Link>
           </span>
         </form>
       </FormContainer>
-      <ToastContainer />
+      <Toaster position="top-center" reverseOrder={false} />
     </>
   );
-}
+};
 
 const FormContainer = styled.div`
   height: 100vh;
@@ -125,14 +144,13 @@ const FormContainer = styled.div`
       text-transform: uppercase;
     }
   }
-
   form {
     display: flex;
     flex-direction: column;
     gap: 2rem;
     background-color: #00000076;
     border-radius: 2rem;
-    padding: 5rem;
+    padding: 3rem 5rem;
   }
   input {
     background-color: transparent;
