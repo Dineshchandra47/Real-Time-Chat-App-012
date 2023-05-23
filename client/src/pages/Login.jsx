@@ -10,6 +10,7 @@ import { loginRoute } from  "../utils/APIRoutes";
 export function Login() {
   const navigate = useNavigate();
   const [values, setValues] = useState({ username: "", password: "" });
+  
   const toastOptions = {
     position: "top-center",
     autoClose: 4000,
@@ -21,8 +22,8 @@ export function Login() {
 
   useEffect(() => {
     if (localStorage.getItem(
-      // process.env.REACT_APP_LOCALHOST_KEY
-      'errr'
+      import.meta.env.VITE_REACT_APP_LOCALHOST_KEY,
+      // 'errr'
       )) {
       navigate("/");
     }
@@ -58,12 +59,12 @@ export function Login() {
       }
       if (data.status === true) {
         localStorage.setItem(
-          // process.env.REACT_APP_LOCALHOST_KEY,
-          'err',
+          import.meta.env.VITE_REACT_APP_LOCALHOST_KEY,
+          // 'err',
           JSON.stringify(data.user)
         );
 
-        navigate("/");
+        navigate("/setAvatar");
       }
     }
   };

@@ -26,8 +26,8 @@ export  function Register() {
 
   useEffect(() => {
     if (localStorage.getItem(
-      // process.env.REACT_APP_LOCALHOST_KEY
-      'rrr'
+      import.meta.env.VITE_REACT_APP_LOCALHOST_KEY,
+      // 'rrr'
       )) {
       navigate("/");
     }
@@ -80,8 +80,8 @@ export  function Register() {
       }
       if (data.status === true) {
         localStorage.setItem(
-          // process.env.REACT_APP_LOCALHOST_KEY,
-          'ddd',
+          import.meta.env.VITE_REACT_APP_LOCALHOST_KEY,
+          // 'ddd',
           JSON.stringify(data.user)
         );
         navigate("/");

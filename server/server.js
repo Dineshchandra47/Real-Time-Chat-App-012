@@ -1,14 +1,17 @@
-const express = require("express")
-const cors = require("cors")
-const mongoose = require("mongoose")
-const app = express()
-const authRoutes = require("./routes/auth")
-require('dotenv').config()
+const express = require("express");
+const cors = require("cors");
+const mongoose = require("mongoose");
+const authRoutes = require("./routes/auth");
+const messageRoutes = require("./routes/message");
+const app = express();
+const socket = require("socket.io");
+require("dotenv").config();
 
 app.use(cors())
 app.use(express.json())
 
-app.use('/api/auth', authRoutes)
+app.use("/api/auth", authRoutes);
+app.use("/api/messages", messageRoutes);
 
 mongoose.connect(process.env.MONGO_URL).then(() => {
   console.log('Connected to Database Successfully')
@@ -20,3 +23,25 @@ mongoose.connect(process.env.MONGO_URL).then(() => {
 const server = app.listen(process.env.PORT, ()=>{
   console.log(`Server is up and running at https://localhost:${process.env.PORT}`)
 })
+
+const io = socket(server, {
+  cors: {
+    origin: "http://localhost:8080",
+    credentials: true,
+  },
+});
+
+global.onlineUsers = new Map();
+io.on("connection", (socket) => {
+  global.chatSocket = socket;
+  socket.on("add-user", (userId) => {
+    onlineUsers.set(userId, socket.id);
+  });
+
+  socket.on("send-msg", (data) => {
+    const sendUserSocket = onlineUsers.get(data.to);
+    if (sendUserSocket) {
+      socket.to(sendUserSocket).emit("msg-recieve", data.msg);
+    }
+  });
+});

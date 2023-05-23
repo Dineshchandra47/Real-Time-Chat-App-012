@@ -9,7 +9,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { setAvatarRoute } from "../utils/APIRoutes";
 
-export const SetAvatar =  () => {
+export const SetAvatar = () => {
   const api = `https://api.multiavatar.com/4645646`;
 
   const navigate = useNavigate();
@@ -26,45 +26,46 @@ export const SetAvatar =  () => {
     theme: "dark",
   };
 
+  useEffect(() => {
+    const getToken = async () => {
+      if (
+        !localStorage.getItem(
+          import.meta.env.REACT_APP_LOCALHOST_KEY
+          // "chat-user"
+        )
+      )
+        navigate("/login");
+    };
 
-  // useEffect(() => {
-  //   const getToken = async () => {
-  //     if (
-  //       !localStorage.getItem(
-  //         // process.env.REACT_APP_LOCALHOST_KEY
-  //         "chat-user"
-  //       ) 
-  //     )
-  //       navigate("/login");
-  //       'true'
-  //   };
-  
-  //   getToken();
-  // }, []);
-
- 
+    getToken();
+  }, []);
 
   const setProfilePicture = async () => {
-    if (selectedAvatar === undefined) {
+    if (selectedAvatar === undefined || selectedAvatar === null) {
       toast.error("Please select an avatar", toastOptions);
     } else {
       const user = await JSON.parse(
         localStorage.getItem(
-          // process.env.REACT_APP_LOCALHOST_KEY
-          "chat-user"
+          import.meta.env.VITE_REACT_APP_LOCALHOST_KEY,
+          // "chat-user"
         )
       );
+      if (user === null) {
+        toast.error("Please login to set your profile picture", toastOptions);
+        return;
+      }
 
       const { data } = await axios.post(`${setAvatarRoute}/${user._id}`, {
         image: avatars[selectedAvatar],
       });
+      console.log(user);
 
       if (data.isSet) {
         user.isAvatarImageSet = true;
         user.avatarImage = data.image;
         localStorage.setItem(
-          // process.env.REACT_APP_LOCALHOST_KEY,
-          "chat-user",
+          import.meta.env.VITE_REACT_APP_LOCALHOST_KEY,
+          // "chat-user",
           JSON.stringify(user)
         );
         navigate("/");
@@ -74,14 +75,12 @@ export const SetAvatar =  () => {
     }
   };
 
- 
-
   useEffect(() => {
     const getAvatar = async () => {
       const data = [];
       for (let i = 0; i < 4; i++) {
         const response = await axios.get(
-          `${api}/${Math.round(Math.random() * 1000)}`
+          `${api}/${Math.floor(Math.random() * 1000)}`
         );
         if (response.data) {
           const buffer = new Buffer(response.data);
@@ -91,17 +90,15 @@ export const SetAvatar =  () => {
       setAvatars(data);
       setIsLoading(false);
     };
-  
+
     getAvatar();
   }, []);
 
- 
   return (
     <>
       {isLoading ? (
         <Container>
           <img src={loader} alt="loader" className="loader" />
-          {/* <loader/> */}
         </Container>
       ) : (
         <Container>
@@ -111,7 +108,8 @@ export const SetAvatar =  () => {
           <div className="avatars">
             {avatars.map((avatar, index) => {
               return (
-                <div key = {index}
+                <div
+                  key={index}
                   className={`avatar ${
                     selectedAvatar === index ? "selected" : ""
                   }`}
@@ -126,7 +124,29 @@ export const SetAvatar =  () => {
               );
             })}
           </div>
-          <button onClick={setProfilePicture} className="submit-btn">
+          <button
+            onClick={async () => {
+              const data = await setProfilePicture();
+
+              // if (data === undefined) {
+              //   toast.error(
+              //     "Error setting avatar. Please try again.",
+              //     toastOptions
+              //   );
+              //   return;
+              // }
+
+              if (data.isSet) {
+                toast.success("Avatar set successfully", toastOptions);
+              } else if (data === undefined) {
+                toast.error(
+                  "Error setting avatar Please try again.",
+                  toastOptions
+                );
+              }
+            }}
+            className="submit-btn"
+          >
             Set as Profile Picture
           </button>
           <ToastContainer />
